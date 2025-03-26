@@ -1,6 +1,7 @@
 package digit.service;
 
 
+import digit.config.BTRConfiguration;
 import digit.enrichment.BirthApplicationEnrichment;
 import digit.kafka.Producer;
 import digit.repository.BirthRegistrationRepository;
@@ -21,6 +22,9 @@ import java.util.List;
 @Service
 @Slf4j
 public class BirthRegistrationService {
+
+    @Autowired
+    private BTRConfiguration config;
 
     @Autowired
     private BirthApplicationValidator validator;
@@ -56,7 +60,7 @@ public class BirthRegistrationService {
         workflowService.updateWorkflowStatus(birthRegistrationRequest);
 
         // Push the application to the topic for persister to listen and persist
-        producer.push("save-bt-application", birthRegistrationRequest);
+        producer.push(config.getCreateTopic(), birthRegistrationRequest);
 
         // Return the response back to user
         return birthRegistrationRequest.getBirthRegistrationApplications();
@@ -93,7 +97,7 @@ public class BirthRegistrationService {
         workflowService.updateWorkflowStatus(birthRegistrationRequest);
 
         // Just like create request, update request will be handled asynchronously by the persister
-        producer.push("update-bt-application", birthRegistrationRequest);
+        producer.push(config.getUpdateTopic(), birthRegistrationRequest);
 
         return birthRegistrationRequest.getBirthRegistrationApplications().get(0);
 
