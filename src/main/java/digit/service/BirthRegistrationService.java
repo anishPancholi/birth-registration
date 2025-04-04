@@ -10,7 +10,10 @@ import digit.web.models.BirthApplicationSearchCriteria;
 import digit.web.models.BirthRegistrationApplication;
 import digit.web.models.BirthRegistrationRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.egov.common.contract.models.Workflow;
 import org.egov.common.contract.request.RequestInfo;
+import org.egov.common.contract.request.User;
+import org.egov.common.contract.workflow.ProcessInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -18,6 +21,8 @@ import org.springframework.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -78,6 +83,27 @@ public class BirthRegistrationService {
         applications.forEach(application -> {
             enrichmentUtil.enrichFatherApplicantOnSearch(application);
             enrichmentUtil.enrichMotherApplicantOnSearch(application);
+        });
+
+        // Enrich worflow
+        applications.forEach(application -> {
+            ProcessInstance processInstance = workflowService.getCurrentWorkflow(requestInfo, application.getTenantId(), application.getApplicationNumber());
+            Workflow workflow = Workflow.builder()
+                    .action(processInstance.getAction())
+                    .comments(processInstance.getComment())
+                    .documents(processInstance.getDocuments())
+//                    .assignes(processInstance.getAssignes().forEach(user -> user.getName()))
+                    .assignes(
+                            Optional.ofNullable(processInstance.getAssignes())
+                                    .orElse(Collections.emptyList())
+                                    .stream()
+                                    .map(User::getName)
+                                    .collect(Collectors.toList())
+                    )
+
+
+                    .build();
+            application.setWorkflow(workflow);
         });
 
         // Otherwise return the found applications

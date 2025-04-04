@@ -120,14 +120,14 @@ public class WorkflowService {
         return response.getBusinessServices().get(0);
     }
 
-    private StringBuilder getSearchURLWithParams(String tenantId, String businessService) {
+    private StringBuilder getSearchURLWithParams(String tenantId, String businessId) {
 
         StringBuilder url = new StringBuilder(config.getWfHost());
-        url.append(config.getWfBusinessServiceSearchPath());
+        url.append(config.getWfProcessInstanceSearchPath());
         url.append("?tenantId=");
         url.append(tenantId);
-        url.append("&businessServices=");
-        url.append(businessService);
+        url.append("&businessIds=");
+        url.append(businessId);
         return url;
     }
 
